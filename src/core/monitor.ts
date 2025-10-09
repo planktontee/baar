@@ -18,8 +18,9 @@ export class MonitorKey {
     }
 
     public static keyForHyprlandMonitor(monitor: AstalHyprland.Monitor): string {
-        const width = monitor.get_width();
-        const height = monitor.get_height();
+        const scale = monitor.get_scale();
+        const width = monitor.get_width() / scale;
+        const height = monitor.get_height() / scale;
         const model = monitor.get_model();
         const manufacturer = monitor.get_make();
 
@@ -35,7 +36,7 @@ export class MonitorKey {
         );
 
         if (hyprlandMonitor === undefined) {
-            MonitorKey.logger.warn(`Could not map GDK Monitor ${keyForGdkMonitor} to any Hyprland monitor`);
+            MonitorKey.logger.warn(`Could not map GDK Monitor ${keyForGdkMonitor} to any Hyprland monitor ${JSON.stringify(hyprlandMonitors.map(monitor => this.keyForHyprlandMonitor(monitor)))}`);
         }
 
         return new HybridMonitor(gdkMonitor, Optional.from(hyprlandMonitor));
@@ -81,7 +82,7 @@ export class LoadedWidget {
     constructor(
         public readonly hybridMonitor: HybridMonitor,
         public readonly widget: JSX.Element
-    ) {}
+    ) { }
 }
 
 export class MonitorManager {
@@ -95,7 +96,7 @@ export class MonitorManager {
         return this.gdkMap.get(monitor)!;
     }
 
-    private constructor() {}
+    private constructor() { }
 
     public static instance() {
         return MonitorManager.INSTANCE;
