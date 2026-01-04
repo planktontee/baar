@@ -42,6 +42,7 @@ export class KVConfig {
     private static logger = Logger.get(KVConfig);
 
     public readonly taskbarMaxLength = DefaultKVConfigValues.TASKBAR_MAX_LENGTH;
+    public readonly compactDashboard = false;
 
     private parseType<T extends string | number | boolean>(key: T, value?: string): T | undefined {
         if (value === "false") {

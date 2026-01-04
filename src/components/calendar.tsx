@@ -66,7 +66,6 @@ export const DateTimeCalendar = (): JSX.Element => {
         <button
             cursor={"pointer"}
             className={"bar-item bar-timer"}
-            label={bind(systemTime).as(time => time?.format("󰸗 %-d %b %y  %H:%M:%S") ?? "")}
             tooltipText="Calendar"
             onButtonPressEvent={MouseEvents.onPrimaryHandler(() => {
                 const window = App.get_window("calendar");
@@ -74,6 +73,21 @@ export const DateTimeCalendar = (): JSX.Element => {
                     window.set_visible(!window.visible);
                 }
             })}
-        />
+        >
+            <box>
+                <label className="bar-timer-date-icon" label={"󰸗 "} />
+                <label
+                    className="bar-timer-date-text"
+                >
+                    {bind(systemTime).as(time => time?.format("%-d %b %y") ?? "")}
+                </label>
+                <label className="bar-timer-time-icon" label={"  "} />
+                <label
+                    className="bar-timer-time-text"
+                >
+                    {bind(systemTime).as(time => time?.format("%H:%M:%S") ?? "")}
+                </label>
+            </box>
+        </button>
     );
 };

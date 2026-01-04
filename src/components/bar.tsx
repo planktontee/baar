@@ -1,4 +1,5 @@
 import { App, Astal, Gtk } from "astal/gtk3";
+import { isScrollDown, isScrollUp } from "./common/events";
 import { HybridMonitor } from "src/core/monitor";
 import { DateTimeCalendar } from "./calendar";
 import { SysTray } from "./tray";
@@ -8,8 +9,9 @@ import { TaskBar } from "./taskbar";
 import { GLib, Variable } from "astal";
 import { Box, CenterBox } from "astal/gtk3/widget";
 import { PowerMenuButton } from "./powermenu";
-import { PollerLabel, CPU_POLLER, GPU_POLLER, RAM_POLLER } from "./pollerlabel";
 import { MixerBadge } from "./mixer";
+import { Dashboard } from "./dashboard";
+import { PollerLabel, CPU_POLLER, GPU_POLLER, RAM_POLLER, dashboardLoaded } from "./pollerlabel";
 
 // Todo make this less shit
 function getTaskBar(window: Gtk.Window): Gtk.ScrolledWindow {
@@ -28,7 +30,7 @@ function getTaskbarSize(window: Gtk.Window): Dimension {
     const [left, mid, right] = centerBox.get_children() as Box[];
     const taskbar = getTaskBar(window);
 
-    const maxSize = window.get_allocated_width();
+    const maxSize = window.get_current_monitor().get_geometry().width;
     const leftW = left.get_allocated_width() - taskbar.get_allocated_width();
     const midW = mid.get_allocated_width();
     const rightW = right.get_allocated_width();
@@ -80,7 +82,7 @@ export default async function Bar(hybridMonitor: HybridMonitor): Promise<JSX.Ele
                 GLib.idle_add(
                     GLib.PRIORITY_DEFAULT_IDLE,
                     ((enableResize: Variable<boolean>, activeX: Variable<number>) => {
-                        if (CPU_POLLER.get() !== "" && GPU_POLLER.get() !== "" && RAM_POLLER.get() !== "") {
+                        if (dashboardLoaded()) {
                             enableResize.set(true);
                             return GLib.SOURCE_REMOVE;
                         }
@@ -98,11 +100,7 @@ export default async function Bar(hybridMonitor: HybridMonitor): Promise<JSX.Ele
                 </box>
                 <box className="bar-section" />
                 <box className="bar-section" halign={Gtk.Align.END} valign={Gtk.Align.CENTER}>
-                    <box className="bar-dashboard">
-                        <PollerLabel tooltip="CPU Info" symbol="" className="cpu-poller" poller={CPU_POLLER} />
-                        <PollerLabel tooltip="GPU Info" symbol="󰢮" className="gpu-poller" poller={GPU_POLLER} />
-                        <PollerLabel tooltip="RAM Info" symbol="" className="ram-poller" poller={RAM_POLLER} />
-                    </box>
+                    <Dashboard />
                     <SysTray />
                     <MixerBadge />
                     <KbLayout />

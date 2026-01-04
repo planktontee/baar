@@ -146,7 +146,7 @@ window.Bar {
     .bar-item {
         background-color: rgba(red(#1a2433), green(#1a2433), blue(#1a2433), 1);
         border-radius: 0.2em;
-        margin: 0em 0.2em 0em 0.2em;
+        margin: 0em 0.15em 0em 0.15em;
         padding: 0.2em 0.6em 0.2em 0.6em;
         color: #a39e80;
         font-family: "JetBrainsMono Nerd Font Propo";
@@ -179,9 +179,13 @@ window.Bar {
         color: #D67E70;
     }
 
+    .compact-poller {
+      color: #F0C080
+    }
+
     .bar-tray {
         padding: 0em 0.3em 0em 0.3em;
-        margin-left: 0.3em;
+        margin-left: 0.15em;
     }
 
     .tray-item {
@@ -195,6 +199,7 @@ window.Bar {
             nth(0.2em 0.6em 0.2em 0.6em, 3)
             nth(0.2em 0.6em 0.2em 0.6em, 4)
         );
+        margin: 0em 0.1em 0em 0.15em;
     }
 
     .ws-tracker {
@@ -234,10 +239,14 @@ window.Bar {
         margin: 0 0.1em 0 0.1em;
     }
 
+    .bar-dashboard {
+        background-color: rgba(51, 46, 27, 0.6);
+        border-radius: 0.2em;
+    }
+
     .taskbox {
         background-color: rgba(51, 46, 27, 0.6);
         border-radius: 0.2em;
-        margin-right: 0.1em;
     }
 
     .task-unfocused {
@@ -258,10 +267,9 @@ window.Bar {
         color: #f2e5d5;
     }
 
-    // .task-title-focused {
-    //     text-decoration: underline;
-    //     text-decoration-color: #e03a1d;
-    // }
+    .bar-timer-date-icon, .bar-timer-time-icon  {
+      color: #66A1A6
+    }
 
     .task-ws-n {
         color: #2ff4f4;
@@ -272,7 +280,8 @@ window.Bar {
     }
     
     .bar-mixer-badge {
-        padding: 0em 0.3em 0em 0.3em;
+        padding: 0em 0.1em 0em 0.15em;
+        margin: 0em 0.1em 0em 0.1em;
     }
 
     .bar-mixer-item {

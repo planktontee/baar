@@ -79,6 +79,7 @@ export const TaskBar = (props: TaskBarProps): JSX.Element => {
     // Todo: Abstract flip flag
     const replacerReloaded = new Variable(0);
     const symbolsReloaded = new Variable(0);
+    const configReloaded = new Variable(0);
 
     ConfigManager.instace().symbols.onLoadNofity(async () => {
         replacerReloaded.set(replacerReloaded.get() ^ 1);
@@ -86,6 +87,10 @@ export const TaskBar = (props: TaskBarProps): JSX.Element => {
 
     ConfigManager.instace().replacer.onLoadNofity(async () => {
         symbolsReloaded.set(symbolsReloaded.get() ^ 1);
+    });
+
+    ConfigManager.instace().config.onLoadNofity(async () => {
+        configReloaded.set(configReloaded.get() ^ 1);
     });
 
     const v = Variable.derive(
@@ -100,6 +105,7 @@ export const TaskBar = (props: TaskBarProps): JSX.Element => {
             bind(focusedCoordinates),
             bind(replacerReloaded),
             bind(symbolsReloaded),
+            bind(configReloaded),
         ],
         (clients, focusedClient, ...argv: any[]) => {
             return clients
