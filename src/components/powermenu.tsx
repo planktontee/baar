@@ -4,6 +4,8 @@ import { Logger } from "src/core/lang/log";
 import { wrapIO } from "src/core/matcher/base";
 import { Menu, MenuItem } from "./common/astalified";
 import { MouseEvents } from "./common/events";
+import { ConfigManager } from "src/core/config/configmanager";
+import { POWER_MENU_SYSTEMD } from "src/core/config/kvconfig";
 
 export const PowerMenuButton = (): JSX.Element => {
     const logger = Logger.get(PowerMenuButton);
@@ -13,7 +15,7 @@ export const PowerMenuButton = (): JSX.Element => {
             <MenuItem
                 className="power-menu-item"
                 label="󰍃 Logout"
-                onButtonPressEvent={MouseEvents.onPrimaryHandler(() =>
+                onButtonPressEvent={MouseEvents.onPrimaryHandler(() => 
                     wrapIO(logger, execAsync("hyprctl dispatch exit"), "Failed logout")
                 )}
             />
@@ -27,16 +29,22 @@ export const PowerMenuButton = (): JSX.Element => {
             <MenuItem
                 className="power-menu-item"
                 label="󰜉 Reboot"
-                onButtonPressEvent={MouseEvents.onPrimaryHandler(() =>
-                    wrapIO(logger, execAsync("systemctl reboot"), "Failed reboot")
-                )}
+                onButtonPressEvent={MouseEvents.onPrimaryHandler(() => {
+                    const powerManager = ConfigManager.instace().config.get()
+                        .apply(c => c.powerManager)
+                        .getOr(POWER_MENU_SYSTEMD);
+                    wrapIO(logger, execAsync(`${powerManager} reboot`), "Failed reboot")
+                })}
             />
             <MenuItem
                 className="power-menu-item"
                 label="󰐥 Power off"
-                onButtonPressEvent={MouseEvents.onPrimaryHandler(() =>
-                    wrapIO(logger, execAsync("systemctl poweroff"), "Failed poweroff")
-                )}
+                onButtonPressEvent={MouseEvents.onPrimaryHandler(() => {
+                    const powerManager = ConfigManager.instace().config.get()
+                        .apply(c => c.powerManager)
+                        .getOr(POWER_MENU_SYSTEMD);
+                    wrapIO(logger, execAsync(`${powerManager} poweroff`), "Failed poweroff")
+                })}
             />
         </Menu>
     ) as Gtk.Menu;

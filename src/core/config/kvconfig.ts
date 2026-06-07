@@ -37,14 +37,19 @@ export enum DefaultKVConfigValues {
     TASKBAR_MAX_LENGTH = 20,
 }
 
+export const POWER_MENU_SYSTEMD: string = "systemctl";
+export const POWER_MENU_LOGINCTL: string = "loginctl";
+
 @LogMe(KVConfig.logger.debug)
 export class KVConfig {
     private static logger = Logger.get(KVConfig);
 
     public readonly taskbarMaxLength = DefaultKVConfigValues.TASKBAR_MAX_LENGTH;
     public readonly compactDashboard = false;
+    public readonly showPower = false;
+    public readonly powerManager = POWER_MENU_SYSTEMD;
 
-    private parseType<T extends string | number | boolean>(key: T, value?: string): T | undefined {
+    private parseType<T extends string | number | boolean>(key: string, value?: T, defaultValue?: T): T | undefined {
         if (value === "false") {
             return false as T;
         }
@@ -54,16 +59,22 @@ export class KVConfig {
         if (typeof key === "number") {
             return Number(value) as T;
         } else {
-            return value as T;
+            if (key === "powerManager") {
+                if (value !== POWER_MENU_SYSTEMD && value !== POWER_MENU_LOGINCTL) {
+                    KVConfig.logger.warn(`Invalid powerManager ${value}, using default ${defaultValue}`);
+                    return defaultValue as T;
+                }
+                return value as T;
+            } else return value as T;
         }
     }
 
     constructor(data: Readonly<Partial<KVConfig>>) {
         Object.keys(data).forEach(key => {
             if (key in this) {
-                const objKey = (this as any)[key];
+                const defaultValue = (this as any)[key];
                 const value = data[key as keyof KVConfig] as string | undefined;
-                (this as any)[key] = this.parseType(objKey, value);
+                (this as any)[key] = this.parseType(key, value, defaultValue);
             }
         });
         Object.freeze(this);
