@@ -12,6 +12,9 @@ import { PowerMenuButton } from "./powermenu";
 import { MixerBadge } from "./mixer";
 import { Dashboard } from "./dashboard";
 import { PollerLabel, CPU_POLLER, GPU_POLLER, RAM_POLLER, dashboardLoaded } from "./pollerlabel";
+import { Logger } from "src/core/lang/log";
+import { EagerPoll } from "./common/variable";
+import { Optional } from "src/core/matcher/optional";
 
 // Todo make this less shit
 function getTaskBar(window: Gtk.Window): Gtk.ScrolledWindow {
@@ -48,6 +51,30 @@ export default async function Bar(hybridMonitor: HybridMonitor): Promise<JSX.Ele
     const activeX = new Variable(0);
     const enableResize = new Variable(false);
 
+    const taskbarV = new Variable<Optional<Gtk.ScrolledWindow>>(Optional.none());
+
+    // roughly 24fps
+    EagerPoll.create(41, async () => {
+        taskbarV.get().apply((taskbar) => {
+            if (!enableResize.get() || activeX.get() === taskbar.get_allocated_width()) {
+                return GLib.SOURCE_CONTINUE;
+            }
+
+            taskbar.set_size_request(activeX.get(), taskbar.get_allocated_height());
+            taskbar.queue_resize();
+        });
+    });
+
+    const pollerEnableResize = EagerPoll.create(41, async () => {
+        if (!enableResize.get() && dashboardLoaded())
+            enableResize.set(true);
+    });
+
+    enableResize.subscribe((v) => {
+        if (v)
+            pollerEnableResize.stopPoll();
+    })
+
     return (
         <window
             inhibit={false}
@@ -58,37 +85,11 @@ export default async function Bar(hybridMonitor: HybridMonitor): Promise<JSX.Ele
             layer={Astal.Layer.BOTTOM}
             anchor={TOP | LEFT | RIGHT}
             setup={self => {
-                const taskbar = getTaskBar(self);
-
-                GLib.idle_add(
-                    GLib.PRIORITY_LOW,
-                    ((enableResize: Variable<boolean>, activeX: Variable<number>, taskbar: Gtk.ScrolledWindow) => {
-                        if (!enableResize.get() || activeX.get() === taskbar.get_allocated_width()) {
-                            return GLib.SOURCE_CONTINUE;
-                        }
-
-                        taskbar.set_size_request(activeX.get(), taskbar.get_allocated_height());
-                        taskbar.queue_resize();
-
-                        return GLib.SOURCE_CONTINUE;
-                    }).bind(null, enableResize, activeX, taskbar)
-                );
+                taskbarV.set(Optional.some(getTaskBar(self)));
 
                 self.connect_after("size-allocate", (_, event) => {
                     activeX.set(getTaskbarSize(self).width);
                 });
-
-                // Todo: refactor based on tray size and other triggers to do the first load to avoid sliding
-                GLib.idle_add(
-                    GLib.PRIORITY_DEFAULT_IDLE,
-                    ((enableResize: Variable<boolean>, activeX: Variable<number>) => {
-                        if (dashboardLoaded()) {
-                            enableResize.set(true);
-                            return GLib.SOURCE_REMOVE;
-                        }
-                        return GLib.SOURCE_CONTINUE;
-                    }).bind(null, enableResize, activeX)
-                );
             }}
         >
             <centerbox className="bar-box">

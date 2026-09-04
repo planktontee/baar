@@ -123,11 +123,15 @@ export function jsonReplacer(key: string, value: any): any {
 
 export function LogMe(log: (...args: any[]) => void) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-        return class extends constructor {
+        const wrapper = class extends constructor {
             constructor(...args: any[]) {
                 super(...args);
                 log(`🔍 ${JSON.stringify(this, jsonReplacer, 2)}`);
             }
         };
+
+        Object.assign(wrapper, constructor);
+
+        return wrapper;
     };
 }

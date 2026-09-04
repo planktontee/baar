@@ -33,21 +33,24 @@ export class KVConfigParser extends ConfigParser<[string, string], [string, stri
     }
 }
 
-export enum DefaultKVConfigValues {
-    TASKBAR_MAX_LENGTH = 20,
-}
-
 export const POWER_MENU_SYSTEMD: string = "systemctl";
 export const POWER_MENU_LOGINCTL: string = "loginctl";
+
+export class DefaultKVConfigValues {
+    public static readonly TASKBAR_MAX_LENGTH = 20;
+    public static readonly COMPACT_DASHBOARD = false;
+    public static readonly SHOW_POWER = false;
+    public static readonly POWER_MANAGER = POWER_MENU_LOGINCTL;
+}
 
 @LogMe(KVConfig.logger.debug)
 export class KVConfig {
     private static logger = Logger.get(KVConfig);
 
     public readonly taskbarMaxLength = DefaultKVConfigValues.TASKBAR_MAX_LENGTH;
-    public readonly compactDashboard = false;
-    public readonly showPower = false;
-    public readonly powerManager = POWER_MENU_SYSTEMD;
+    public readonly compactDashboard = DefaultKVConfigValues.COMPACT_DASHBOARD;
+    public readonly showPower = DefaultKVConfigValues.SHOW_POWER;
+    public readonly powerManager = DefaultKVConfigValues.POWER_MANAGER;
 
     private parseType<T extends string | number | boolean>(key: string, value?: T, defaultValue?: T): T | undefined {
         if (value === "false") {

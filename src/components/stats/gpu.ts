@@ -3,11 +3,18 @@ import { Logger } from "src/core/lang/log";
 import { wrapIO } from "src/core/matcher/base";
 import { EagerPoll } from "../common/variable";
 import { Poller } from "./poller";
+import { Measured } from "src/core/lang/timer";
 
 export interface GpuStats {
     readonly cpuUsage?: number;
     readonly ramUsage?: number;
     readonly temp?: number;
+}
+
+interface RawGPUStas {
+    readonly temperatures: number[];
+    readonly vRAMUsages: number[];
+    readonly cpuUsages: number[];
 }
 
 export class GpuPoller implements Poller<GpuStats> {
@@ -17,40 +24,79 @@ export class GpuPoller implements Poller<GpuStats> {
         return EagerPoll.create(frequency, this.stats.bind(this));
     }
 
-    // Todo: use a different strategy, gpustart is taking 181ms
+    // Todo: use a different strategy 400ms+
+    @Measured(GpuPoller.logger.debug)
     public async stats(): Promise<GpuStats> {
-        const cmd = "gpustat --no-process --json";
+        const cmd = "nvidia-smi --query-gpu=temperature.gpu,memory.used,memory.total,utilization.gpu --format=noheader";
 
-        const gpuJson = (await wrapIO(GpuPoller.logger, execAsync(cmd), `Unable to run ${cmd}`)).match(
-            v => JSON.parse(v),
+        const rawGPUStats = (await wrapIO(GpuPoller.logger, execAsync(cmd), `Unable to run ${cmd}`)).match(
+            v => {
+                var temperatures: number[] = [];
+                var vRAMUsages: number[] = [];
+                var cpuUsages: number[] = [];
+                for (const line of v.split("\n")) {
+                    const columns = line.split(",");
+                    if (columns.length < 4) {
+                        GpuPoller.logger.warn(`Retrieved line if in the wrong format: ${line}`);
+                        continue;
+                    }
+
+                    const [rawTemperature, rawMemUsed, rawMemTotal, rawCpuUsagePercent] = columns;
+
+                    const parsedTemperature = parseInt(rawTemperature);
+                    if (isNaN(parsedTemperature)) {
+                        GpuPoller.logger.warn(`Retrieved temperature in the wrong format: ${line}`);
+                        continue;
+                    }
+                    temperatures.push(parsedTemperature);
+
+                    // there's a trailing ' '
+                    const memUsedRatio =
+                        (parseInt(rawMemUsed.split(" ")[1]) / parseInt(rawMemTotal.split(" ")[1])) * 100;
+                    if (isNaN(memUsedRatio)) {
+                        GpuPoller.logger.warn(`Retrieved memUsed/MemTotal in the wrong format: ${line}`);
+                        continue;
+                    }
+                    vRAMUsages.push(memUsedRatio);
+
+                    const parsedCpuPercent = parseInt(rawCpuUsagePercent);
+                    if (isNaN(parsedTemperature)) {
+                        GpuPoller.logger.warn(`Retrieved cpu percent in the wrong format: ${line}`);
+                        continue;
+                    }
+                    cpuUsages.push(parsedCpuPercent);
+                }
+                return {
+                    temperatures: temperatures,
+                    vRAMUsages: vRAMUsages,
+                    cpuUsages: cpuUsages,
+                } as RawGPUStas;
+            },
             _ => undefined
         );
 
-        if (gpuJson === undefined) {
+        if (rawGPUStats === undefined) {
             return {};
         }
 
         const cpuUsage =
-            gpuJson.gpus.reduce((acc: number, gpu: any) => {
-                return acc + gpu["utilization.gpu"];
-            }, 0) / gpuJson.gpus.length;
+            rawGPUStats.cpuUsages.reduce((acc: number, usage: any) => {
+                return acc + usage;
+            }, 0) / rawGPUStats.cpuUsages.length;
 
-        const ramUsage = gpuJson.gpus.reduce((acc: number, gpu: any) => {
-            return acc + gpu["memory.used"];
-        }, 0);
-
-        const ramTotal = gpuJson.gpus.reduce((acc: number, gpu: any) => {
-            return acc + gpu["memory.total"];
-        }, 0);
+        const ramUsage =
+            rawGPUStats.vRAMUsages.reduce((acc: number, usage: any) => {
+                return acc + usage;
+            }, 0) / rawGPUStats.vRAMUsages.length;
 
         const temp =
-            gpuJson.gpus.reduce((acc: number, gpu: any) => {
-                return acc + gpu["temperature.gpu"];
-            }, 0) / gpuJson.gpus.length;
+            rawGPUStats.temperatures.reduce((acc: number, temperature: any) => {
+                return acc + temperature;
+            }, 0) / rawGPUStats.temperatures.length;
 
         return {
             cpuUsage: cpuUsage,
-            ramUsage: (ramUsage / ramTotal) * 100,
+            ramUsage: ramUsage,
             temp: temp,
         };
     }

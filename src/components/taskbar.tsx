@@ -9,6 +9,7 @@ import { SymbolConfig } from "src/core/config/symbolconfig";
 import { DefaultKVConfigValues } from "src/core/config/kvconfig";
 import { ConfigManager } from "src/core/config/configmanager";
 import { Logger } from "src/core/lang/log";
+import { EagerPoll } from "./common/variable";
 
 const hyprlandService = Hyprland.get_default();
 
@@ -93,6 +94,33 @@ export const TaskBar = (props: TaskBarProps): JSX.Element => {
         configReloaded.set(configReloaded.get() ^ 1);
     });
 
+    // roughly 24fps
+    const clientPoller = EagerPoll.create(41, async () => {
+        const client = hyprlandService.focusedClient;
+        const oldMonitor = focusedClinetMonitor.get();
+        const [oldX, oldY] = focusedCoordinates.get();
+
+        if (hyprlandService.focusedClient !== null) {
+            const newMonitor = hyprlandService.focusedClient.monitor;
+            if (oldMonitor !== newMonitor) {
+                focusedClinetMonitor.set(newMonitor);
+            }
+
+            const [newX, newY] = [client.get_x(), client.get_y()];
+            if (oldX !== newX || oldY !== newY) {
+                focusedCoordinates.set([newX, newY]);
+            }
+        } else {
+            if (oldMonitor !== null) {
+                focusedClinetMonitor.set(null);
+            }
+
+            if (oldX !== null || oldY !== null) {
+                focusedCoordinates.set([null, null]);
+            }
+        }
+    });
+
     const v = Variable.derive(
         [
             bind(hyprlandService, "clients"),
@@ -136,9 +164,9 @@ export const TaskBar = (props: TaskBarProps): JSX.Element => {
                         className={getClassName(client, focusedClient)}
                         onClick={(self, event) => {
                             if (event.button === Astal.MouseButton.PRIMARY) {
-                                client.focus();
+                                hyprlandService.dispatch("", `hl.dsp.focus({ window = 'address:0x${client.get_address()}' })`)
                             } else if (event.button === Astal.MouseButton.MIDDLE) {
-                                client.kill();
+                                hyprlandService.dispatch("", `hl.dsp.window.kill({ window = 'address:0x${client.get_address()}' })`)
                             }
                         }}
                     >
@@ -174,39 +202,6 @@ export const TaskBar = (props: TaskBarProps): JSX.Element => {
             hscrollbar_policy={Gtk.PolicyType.EXTERNAL}
             vscrollbar_policy={Gtk.PolicyType.NEVER}
             setup={self => {
-                GLib.idle_add(
-                    GLib.PRIORITY_LOW,
-                    ((
-                        focusedCoordinates: Variable<(number | null)[]>,
-                        focusedClinetMonitor: Variable<Hyprland.Monitor | null>
-                    ) => {
-                        const client = hyprlandService.focusedClient;
-                        const oldMonitor = focusedClinetMonitor.get();
-                        const [oldX, oldY] = focusedCoordinates.get();
-
-                        if (hyprlandService.focusedClient !== null) {
-                            const newMonitor = hyprlandService.focusedClient.monitor;
-                            if (oldMonitor !== newMonitor) {
-                                focusedClinetMonitor.set(newMonitor);
-                            }
-
-                            const [newX, newY] = [client.get_x(), client.get_y()];
-                            if (oldX !== newX || oldY !== newY) {
-                                focusedCoordinates.set([newX, newY]);
-                            }
-                        } else {
-                            if (oldMonitor !== null) {
-                                focusedClinetMonitor.set(null);
-                            }
-
-                            if (oldX !== null || oldY !== null) {
-                                focusedCoordinates.set([null, null]);
-                            }
-                        }
-                        return GLib.SOURCE_CONTINUE;
-                    }).bind(null, focusedCoordinates, focusedClinetMonitor)
-                );
-
                 self.connect("scroll-event", (_, event: Gdk.Event) => {
                     const [, , yScroll] = event.get_scroll_deltas();
 

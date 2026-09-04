@@ -5,7 +5,7 @@ import { wrapIO } from "src/core/matcher/base";
 import { Menu, MenuItem } from "./common/astalified";
 import { MouseEvents } from "./common/events";
 import { ConfigManager } from "src/core/config/configmanager";
-import { POWER_MENU_SYSTEMD } from "src/core/config/kvconfig";
+import { DefaultKVConfigValues, POWER_MENU_LOGINCTL } from "src/core/config/kvconfig";
 
 export const PowerMenuButton = (): JSX.Element => {
     const logger = Logger.get(PowerMenuButton);
@@ -15,8 +15,8 @@ export const PowerMenuButton = (): JSX.Element => {
             <MenuItem
                 className="power-menu-item"
                 label="󰍃 Logout"
-                onButtonPressEvent={MouseEvents.onPrimaryHandler(() => 
-                    wrapIO(logger, execAsync("hyprctl dispatch exit"), "Failed logout")
+                onButtonPressEvent={MouseEvents.onPrimaryHandler(() =>
+                    wrapIO(logger, execAsync("hyprctl dispatch 'hl.dsp.exit()'"), "Failed logout")
                 )}
             />
             <MenuItem
@@ -32,7 +32,7 @@ export const PowerMenuButton = (): JSX.Element => {
                 onButtonPressEvent={MouseEvents.onPrimaryHandler(() => {
                     const powerManager = ConfigManager.instace().config.get()
                         .apply(c => c.powerManager)
-                        .getOr(POWER_MENU_SYSTEMD);
+                        .getOr(DefaultKVConfigValues.POWER_MANAGER);
                     wrapIO(logger, execAsync(`${powerManager} reboot`), "Failed reboot")
                 })}
             />
@@ -42,7 +42,7 @@ export const PowerMenuButton = (): JSX.Element => {
                 onButtonPressEvent={MouseEvents.onPrimaryHandler(() => {
                     const powerManager = ConfigManager.instace().config.get()
                         .apply(c => c.powerManager)
-                        .getOr(POWER_MENU_SYSTEMD);
+                        .getOr(DefaultKVConfigValues.POWER_MANAGER);
                     wrapIO(logger, execAsync(`${powerManager} poweroff`), "Failed poweroff")
                 })}
             />

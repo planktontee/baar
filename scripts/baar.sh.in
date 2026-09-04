@@ -1,7 +1,13 @@
 #!/bin/sh
 
 if [ "$#" -eq 0 ]; then
-    exec "@DATADIR@/baar-app"
+    nohup "@DATADIR@/baar-app" &>/dev/null &
+    disown
+    sleep 0.3
+    pid=$(ps aux|grep -iE "\s+/usr/bin/gjs -m /run/user/$(id -u)/[^-]+-ags\.js"|awk -F' ' '{print $2}')
+    if [[ "$pid" =~ ^[0-9]+$ ]]; then
+        taskset -acp 15 $pid &>/dev/null
+    fi
 else
-    exec astal -i baar "$*"
+    exec astal -i baar "$@"
 fi

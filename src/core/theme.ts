@@ -93,7 +93,7 @@ export class ThemeManager {
     }
 
     private async rebuildCss(): Promise<void> {
-        return Resultify.promise(execAsync(`sass --no-source-map ${this.combinedSCSSPath} ${this.endCSSPath}`)).then(
+        return Resultify.promise(execAsync(`sass --sourcemap=none ${this.combinedSCSSPath} ${this.endCSSPath}`)).then(
             filled =>
                 filled.match(
                     () => undefined,

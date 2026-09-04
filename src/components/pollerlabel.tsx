@@ -5,6 +5,7 @@ import { RamPoller } from "./stats/ram";
 import { PowerPoller, PowerStats } from "./stats/power";
 import { Optional } from "src/core/matcher/optional";
 import { ConfigManager } from "src/core/config/configmanager";
+import { DefaultKVConfigValues } from "src/core/config/kvconfig";
 
 interface PollerLabelProps {
     readonly symbol?: string;
@@ -61,14 +62,14 @@ function formatPowerStats(powerStats: PowerStats | null | undefined): string {
             var icon = Optional.from(p.charing)
                 .apply(p => p ? "󰂄" : undefined)
                 .get();
-            
+
             if (icon === undefined) {
                 icon = Optional.from(p.level)
                     .apply(toPowerGlyph)
                     .get();
             }
-            
-            if (icon === undefined) return ""; 
+
+            if (icon === undefined) return "";
 
             return Optional.from(p.level)
                 .apply(l => `${icon}${fmt(l, 0, 3)}`)
@@ -104,7 +105,7 @@ const POWER_GLYPHS: Record<number, string> = {
     20: '󰁻',
     30: '󰁼',
     40: '󰁽',
-    50: '󰁾', 
+    50: '󰁾',
     60: '󰁿',
     70: '󰂀',
     80: '󰂁',
@@ -132,11 +133,12 @@ export const COMPACT_POLLER_TEMP = bind(Variable.derive(
     }
 ));
 
-export function dashboardLoaded(): bool {
+export function dashboardLoaded(): boolean {
+    const showPower = ConfigManager.instace().config.get().apply(c => c.showPower).getOr(DefaultKVConfigValues.SHOW_POWER);
     return (
         CPU_POLLER.get() !== "" &&
         GPU_POLLER.get() !== "" &&
         RAM_POLLER.get() !== "" &&
-        POWER_POLLER.get() !== ""
+        (!showPower || POWER_POLLER.get() !== "")
     );
 }

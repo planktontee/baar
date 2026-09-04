@@ -42,7 +42,7 @@ export function Workspaces() {
                             <button
                                 cursor={"pointer"}
                                 className={`${workspaceClass(ws, focused, actives)}`}
-                                onClicked={() => hypr.dispatch("workspace", ws.id.toString())}
+                                onClicked={() => hypr.dispatch("", `hl.dsp.focus({ workspace = ${ws.id.toString()} })`)}
                             >
                                 {ws.id}
                             </button>
