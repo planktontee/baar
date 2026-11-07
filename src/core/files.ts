@@ -41,8 +41,20 @@ export function tryLoadFileTrimmedSafe(file: Optional<Gio.File>): Optional<strin
             return Optional.none();
         }
 
-        const decoder = new TextDecoder('utf-8');
+        const decoder = new TextDecoder("utf-8");
         const trimmed = decoder.decode(contents).trim();
         return trimmed.length > 0 ? Optional.some(trimmed) : Optional.none();
     });
+}
+
+export function readNumber(path: string): Optional<number> {
+    return tryLoadFileTrimmedSafe(Optional.from(Gio.File.new_for_path(path))).flatMap(s => {
+        const n = parseInt(s, 10);
+        if (Number.isNaN(n)) return Optional.none();
+        return Optional.some(n);
+    });
+}
+
+export function readString(path: string): Optional<string> {
+    return tryLoadFileTrimmedSafe(Optional.from(Gio.File.new_for_path(path)));
 }

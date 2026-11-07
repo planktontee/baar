@@ -4,7 +4,7 @@ import { Logger } from "src/core/lang/log";
 import { EagerPoll } from "../common/variable";
 import { Poller } from "./poller";
 import { Optional } from "src/core/matcher/optional";
-import { gobbler, tryLoadFileTrimmedSafe as readContent } from "src/core/files";
+import { gobbler, tryLoadFileTrimmedSafe } from "src/core/files";
 
 export interface CpuStats {
     readonly usage?: number;
@@ -49,7 +49,7 @@ export class CpuPoller implements Poller<CpuStats> {
         }
 
         for (const hwmon of gobbler(Gio.File.new_for_path(CpuPoller.HWMON_PATH))) {
-            const chipNameOpt = readContent(Optional.from(hwmon.get_child("name")));
+            const chipNameOpt = tryLoadFileTrimmedSafe(Optional.from(hwmon.get_child("name")));
             if (chipNameOpt.isNone()) {
                 continue;
             }
@@ -60,7 +60,7 @@ export class CpuPoller implements Poller<CpuStats> {
                     continue;
                 }
 
-                const labelOpt = readContent(Optional.from(child));
+                const labelOpt = tryLoadFileTrimmedSafe(Optional.from(child));
                 if (labelOpt.isNone()) {
                     continue;
                 }
@@ -86,7 +86,7 @@ export class CpuPoller implements Poller<CpuStats> {
 
     private readCpuTempFromFile(path: string): Optional<number> {
         const file = Gio.File.new_for_path(path);
-        return readContent(Optional.from(file)).flatMap(raw => {
+        return tryLoadFileTrimmedSafe(Optional.from(file)).flatMap(raw => {
             const val = parseInt(raw, 10);
 
             if (Number.isNaN(val)) {
