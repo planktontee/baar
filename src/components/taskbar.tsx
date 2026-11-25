@@ -166,7 +166,7 @@ export const TaskBar = (props: TaskBarProps): JSX.Element => {
                             if (event.button === Astal.MouseButton.PRIMARY) {
                                 hyprlandService.dispatch("", `hl.dsp.focus({ window = 'address:0x${client.get_address()}' })`)
                             } else if (event.button === Astal.MouseButton.MIDDLE) {
-                                hyprlandService.dispatch("", `hl.dsp.window.kill({ window = 'address:0x${client.get_address()}' })`)
+                                hyprlandService.dispatch("", `hl.dsp.window.close({ window = 'address:0x${client.get_address()}' })`)
                             }
                         }}
                     >
