@@ -79,7 +79,7 @@ export const DateTimeCalendar = (): JSX.Element => {
                 <label
                     className="bar-timer-date-text"
                 >
-                    {bind(systemTime).as(time => time?.format("%-d %b %y") ?? "")}
+                    {bind(systemTime).as(time => time?.format("%d/%m/%y") ?? "")}
                 </label>
                 <label className="bar-timer-time-icon" label={"  "} />
                 <label

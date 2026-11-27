@@ -86,9 +86,9 @@ export const COMPACT_POLLER_USAGE = bind(Variable.derive(
         bind(RAM_COMPONENT_POLLER),
     ],
     (cpuStats, gpuStats, ramStats) => {
-        const cpuUsage = cpuStats !== null ? `${fmt(cpuStats.usage)} ` : "";
-        const gpuUsage = gpuStats !== null ? `󰢮${fmt(gpuStats.ramUsage)} ` : "";
-        const ramUsage = ramStats !== null ? `${fmt(ramStats.usage)}` : "";
+        const cpuUsage = cpuStats !== null ? `${fmt(cpuStats.usage, 0, 3)} ` : "";
+        const gpuUsage = gpuStats !== null ? `󰢮${fmt(gpuStats.ramUsage, 0, 3)} ` : "";
+        const ramUsage = ramStats !== null ? `󰍛${fmt(ramStats.usage, 0, 3)}` : "";
         return `${cpuUsage}${gpuUsage}${ramUsage}`;
     }
 ));
@@ -125,8 +125,8 @@ export const COMPACT_POLLER_TEMP = bind(Variable.derive(
         bind(configReloaded)
     ],
     (cpuStats, gpuStats, powerStats) => {
-        const cpuTemp = cpuStats !== null ? `${fmt(cpuStats.temp)} ` : "";
-        const gpuTemp = gpuStats !== null ? `󰢮${fmt(gpuStats.temp)} ` : "";
+        const cpuTemp = cpuStats !== null ? `${fmt(cpuStats.temp, 0, 3)} ` : "";
+        const gpuTemp = gpuStats !== null ? `󰢮${fmt(gpuStats.temp, 0, 3)} ` : "";
         const power = formatPowerStats(powerStats);
 
         return `${cpuTemp}${gpuTemp}${power}`;

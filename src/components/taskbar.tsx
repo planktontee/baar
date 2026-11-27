@@ -2,9 +2,9 @@ import { bind, GLib, Variable } from "astal";
 import Hyprland from "gi://AstalHyprland";
 import AstalHyprland from "gi://AstalHyprland?version=0.1";
 import { HybridMonitor } from "src/core/monitor";
-import { Astal, Gdk, Gtk } from "astal/gtk3";
+import { Astal, Gtk } from "astal/gtk3";
 import { toSubscript } from "src/core/symbols";
-import { isScrollDown, isScrollUp } from "./common/events";
+import { attachHorizontalScroll, followFocusedClass } from "./common/scroll";
 import { SymbolConfig } from "src/core/config/symbolconfig";
 import { DefaultKVConfigValues } from "src/core/config/kvconfig";
 import { ConfigManager } from "src/core/config/configmanager";
@@ -197,33 +197,25 @@ export const TaskBar = (props: TaskBarProps): JSX.Element => {
         }
     );
 
+    const content = (
+        <box className="taskbox" orientation={Gtk.Orientation.HORIZONTAL}>
+            {bind(v)}
+        </box>
+    ) as Gtk.Box;
+
     return (
         <scrollable
             hscrollbar_policy={Gtk.PolicyType.EXTERNAL}
             vscrollbar_policy={Gtk.PolicyType.NEVER}
             setup={self => {
-                self.connect("scroll-event", (_, event: Gdk.Event) => {
-                    const [, , yScroll] = event.get_scroll_deltas();
-
-                    let modifier = undefined;
-                    if (isScrollUp(event)) {
-                        modifier = yScroll < 0 ? 1 : -1;
-                    } else if (isScrollDown(event)) {
-                        modifier = 1;
-                    } else {
-                        return false;
-                    }
-
-                    const adj = self.get_hadjustment();
-                    adj.set_value((adj.get_value() + 30 * yScroll) * modifier);
-                    self.set_hadjustment(adj);
-                    return true;
-                });
+                attachHorizontalScroll(self);
+                followFocusedClass(self, content, "task-focused", hyprlandService, [
+                    "notify::focused-workspace",
+                    "notify::focused-client",
+                ]);
             }}
         >
-            <box className="taskbox" orientation={Gtk.Orientation.HORIZONTAL}>
-                {bind(v)}
-            </box>
+            {content}
         </scrollable>
     );
 };

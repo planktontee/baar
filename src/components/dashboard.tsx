@@ -31,7 +31,7 @@ export const Dashboard = (): Gtk.Widget => {
             if (compactDashboard) {
                 const compactDash = (() => {
                     if (showUsage) {
-                        return <PollerLabel tooltip="Usage rate (CPU, GPU, RAM)" symbol="⧊" className="compact-poller" poller={COMPACT_POLLER_USAGE} />
+                        return <PollerLabel tooltip="Usage rate (CPU, GPU, RAM)" symbol="󰓅" className="compact-poller" poller={COMPACT_POLLER_USAGE} />
                     }
                     else {
                         // TODO: add battery remaining to tooltip
