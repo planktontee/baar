@@ -38,7 +38,7 @@ export const POWER_MENU_LOGINCTL: string = "loginctl";
 
 export class DefaultKVConfigValues {
     public static readonly TASKBAR_MAX_LENGTH = 20;
-    public static readonly COMPACT_DASHBOARD = false;
+    public static readonly COMPACT_MODE = false;
     public static readonly SHOW_POWER = false;
     public static readonly POWER_MANAGER = POWER_MENU_LOGINCTL;
 }
@@ -48,7 +48,7 @@ export class KVConfig {
     private static logger = Logger.get(KVConfig);
 
     public readonly taskbarMaxLength = DefaultKVConfigValues.TASKBAR_MAX_LENGTH;
-    public readonly compactDashboard = DefaultKVConfigValues.COMPACT_DASHBOARD;
+    public readonly compactMode = DefaultKVConfigValues.COMPACT_MODE;
     public readonly showPower = DefaultKVConfigValues.SHOW_POWER;
     public readonly powerManager = DefaultKVConfigValues.POWER_MANAGER;
 

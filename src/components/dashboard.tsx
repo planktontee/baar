@@ -18,18 +18,18 @@ export const Dashboard = (): Gtk.Widget => {
             bind(configReloaded),
         ],
         (showUsage, ...argv: any[]) => {
-            const compactDashboard = ConfigManager.instace()
+            const compactMode = ConfigManager.instace()
                 .config.get()
-                .apply(config => config.compactDashboard)
-                .getOr(DefaultKVConfigValues.COMPACT_DASHBOARD)
+                .apply(config => config.compactMode)
+                .getOr(DefaultKVConfigValues.COMPACT_MODE)
 
             const showPowerUsage = ConfigManager.instace()
                 .config.get()
                 .apply(config => config.showPower)
                 .getOr(DefaultKVConfigValues.SHOW_POWER);
 
-            if (compactDashboard) {
-                const compactDash = (() => {
+            if (compactMode) {
+                const compactPoller = (() => {
                     if (showUsage) {
                         return <PollerLabel tooltip="Usage rate (CPU, GPU, RAM)" symbol="󰓅" className="compact-poller" poller={COMPACT_POLLER_USAGE} />
                     }
@@ -49,7 +49,7 @@ export const Dashboard = (): Gtk.Widget => {
                             }
                         }}
                     >
-                        {compactDash}
+                        {compactPoller}
                     </button>
                 );
             }
